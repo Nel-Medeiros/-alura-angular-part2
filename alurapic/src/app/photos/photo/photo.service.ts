@@ -1,9 +1,13 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { catchError, map } from 'rxjs/operators';
+import { of, throwError } from 'rxjs';
 
+import { PhotoComment } from './photo-comment';
 import { Photo } from './photo';
+import { environment } from './../../../environments/environment';
 
-const API = 'http://localhost:3000';
+const API = environment.ApiUrl;
 
 @Injectable({ providedIn: 'root' })
 export class PhotoService {
@@ -19,4 +23,54 @@ export class PhotoService {
         return this.http
             .get<Photo[]>(API + '/' + userName + '/photos', { params });
     }
+
+    upload(description: string, allowComments: boolean, file: File) {
+        const formData = new FormData();
+        formData.append('description', description);
+        formData.append('allowComments', allowComments ? 'true' : 'false');
+        formData.append('imageFile', file);
+        return this.http.post(
+            API + '/photos/upload', formData,
+            {
+                observe: 'events',
+                reportProgress: true
+            }
+        );
+    }
+
+    fingById(photoId: number) {
+        return this.http.get<Photo>(API + '/photos/' + photoId);
+    }
+
+    getComments(photoId: number) {
+        return this.http.get<PhotoComment[]>(
+            API + '/photos/' + photoId + '/comments'
+        );
+    }
+
+    addComment(photoId: number, commentText: string) {
+        return this.http.post(
+            API + '/photos/' + photoId + '/comments',
+            { commentText }
+        );
+    }
+
+    removePhoto(photoId: number) {
+        return this.http.delete(API + '/photos/' + photoId);
+    }
+
+    like(photoId: number) {
+        //faz um post para o enpoint 'like' a API passando um objeto vazio e utilizando 
+        // o 'observe' para ter acesso ao status code da resposta, independente do que 
+        // vier na resposta o valor é convertido para 'true', verifica se a resposta veio 
+        // com erro, se o erro é '304' - configurado na API como o erro de like repetido, 
+        // o que invoca o método 'of', que cria um novo Observable, recebendo false, ou 
+        // se é outro tipo de erro e o lança. 
+        return this.http.post(API + '/photos/' + photoId + '/like', {}, { observe: 'response' })
+            .pipe(map(res => true))
+            .pipe(catchError(err => {
+                return err.status == '304' ? of(false) : throwError(err);
+            }));
+    }
+
 }

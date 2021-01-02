@@ -1,3 +1,7 @@
+import { GlobalErrorComponent } from './errors/global-error/global-error.component';
+import { PhotoDetailsComponent } from './photos/photo-details/photo-details.component';
+import { AuthGuard } from './core/auth/auth.guard';
+import { LoginGuard } from './core/auth/login.guard';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
@@ -8,23 +12,50 @@ import { PhotoListComponent } from './photos/photo-list/photo-list.component';
 
 const routes: Routes = [
     {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'home'
+    },
+    {
+        path: 'home',
+        loadChildren: './home/home.module#HomeModule'
+    },
+    {
         path: 'user/:userName',
         component: PhotoListComponent,
-        resolve: { photos: PhotoListResolver }
+        resolve: { photos: PhotoListResolver },
+        data: { title: 'Timeline' }
     },
     {
         path: 'p/add',
-        component: PhotoFormComponent
+        component: PhotoFormComponent,
+        canActivate: [AuthGuard],
+        data: { title: 'Photo Upload' }
+    },
+    {
+        path: 'p/:photoId',
+        component: PhotoDetailsComponent,
+        data: { title: 'Photo Detail' }
+    },
+    {
+        path: 'not-found',
+        component: NotFoundComponent,
+        data: { title: 'Not Found' }
+    },
+    {
+        path: 'error',
+        component: GlobalErrorComponent,
+        data: { title: 'Error' }
     },
     {
         path: '**',
-        component: NotFoundComponent
+        redirectTo: 'not-found'
     }
 ];
 
 @NgModule({
     imports: [
-        RouterModule.forRoot(routes)
+        RouterModule.forRoot(routes, { useHash: true })
     ],
     exports: [
         RouterModule
