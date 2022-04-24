@@ -1,3 +1,4 @@
+import { UserListComponent } from './users/user-list/user-list.component';
 import { GlobalErrorComponent } from './errors/global-error/global-error.component';
 import { PhotoDetailsComponent } from './photos/photo-details/photo-details.component';
 import { AuthGuard } from './core/auth/auth.guard';
@@ -25,6 +26,11 @@ const routes: Routes = [
         component: PhotoListComponent,
         resolve: { photos: PhotoListResolver },
         data: { title: 'Timeline' }
+    },
+    {
+        path: 'p/users',
+        component: UserListComponent,
+        data: { title: 'Usuários' }
     },
     {
         path: 'p/add',
